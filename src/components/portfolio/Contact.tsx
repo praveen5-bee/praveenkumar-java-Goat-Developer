@@ -1,0 +1,191 @@
+import { useState, type FormEvent } from "react";
+import { motion } from "motion/react";
+import { Mail, Phone, Github, Linkedin, Send } from "lucide-react";
+import { toast } from "sonner";
+import { Section } from "./Section";
+
+const contacts = [
+  {
+    icon: Mail,
+    label: "Email",
+    value: "mpraveenkumar594@gmail.com",
+    href: "mailto:mpraveenkumar594@gmail.com",
+  },
+  { icon: Phone, label: "Phone", value: "+91 7639259106", href: "tel:+917639259106" },
+  {
+    icon: Linkedin,
+    label: "LinkedIn",
+    value: "/in/59praveen",
+    href: "https://www.linkedin.com/in/59praveen",
+  },
+  { icon: Github, label: "GitHub", value: "praveen5-bee", href: "https://github.com/praveen5-bee" },
+];
+
+const contactFormEndpoint = import.meta.env.VITE_CONTACT_FORM_ENDPOINT;
+const contactFormAccessKey = import.meta.env.VITE_CONTACT_FORM_ACCESS_KEY;
+
+export function Contact() {
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [sending, setSending] = useState(false);
+
+  const onSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+
+    if (!contactFormEndpoint || !contactFormAccessKey) {
+      toast.error("Contact form is not configured yet");
+      return;
+    }
+
+    try {
+      setSending(true);
+
+      const formData = new FormData();
+      formData.append("access_key", contactFormAccessKey);
+      formData.append("name", form.name);
+      formData.append("email", form.email);
+      formData.append("message", form.message);
+
+      const response = await fetch(contactFormEndpoint, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Contact form request failed with ${response.status}`);
+      }
+
+      const data = (await response.json()) as { success?: boolean; message?: string };
+
+      if (data.success) {
+        toast.success("Message sent successfully!");
+        setForm({ name: "", email: "", message: "" });
+      } else {
+        toast.error(data.message || "Failed to send message");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Section
+      id="contact"
+      eyebrow="Contact"
+      title="Let's build something great"
+      subtitle="Open to backend, fintech, and full-time opportunities."
+    >
+      <div className="grid gap-8 lg:grid-cols-5">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="space-y-3 lg:col-span-2"
+        >
+          {contacts.map((contact) => (
+            <a
+              key={contact.label}
+              href={contact.href}
+              target={contact.href.startsWith("http") ? "_blank" : undefined}
+              rel="noreferrer"
+              className="group flex items-center gap-4 rounded-2xl p-4 transition hover:-translate-y-0.5 hover:bg-white/10 glass"
+            >
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/15 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                <contact.icon size={18} />
+              </span>
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {contact.label}
+                </div>
+                <div className="truncate text-sm font-semibold">{contact.value}</div>
+              </div>
+            </a>
+          ))}
+        </motion.div>
+
+        <motion.form
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          onSubmit={onSubmit}
+          className="space-y-4 rounded-3xl p-6 sm:p-8 lg:col-span-3 glass-strong shimmer-border"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="name"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Name
+              </label>
+              <input
+                id="name"
+                value={form.name}
+                onChange={(event) => setForm({ ...form, name: event.target.value })}
+                maxLength={80}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="Your name"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={(event) => setForm({ ...form, email: event.target.value })}
+                maxLength={120}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="you@company.com"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              htmlFor="message"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            >
+              Message
+            </label>
+            <textarea
+              id="message"
+              rows={5}
+              value={form.message}
+              onChange={(event) => setForm({ ...form, message: event.target.value })}
+              maxLength={1500}
+              className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+              placeholder="Tell me about your project or role"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={sending}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:-translate-y-0.5 hover:shadow-glow disabled:opacity-60 sm:w-auto"
+          >
+            <Send size={16} />
+            {sending ? "Sending..." : "Send Message"}
+          </button>
+        </motion.form>
+      </div>
+    </Section>
+  );
+}
