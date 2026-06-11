@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Download, Mail, Github, Linkedin, Sparkles } from "lucide-react";
-import portrait from "@/assets/praveen-portrait.jpeg";
+import portrait from "@/assets/praveen-portrait.png";
 
 const roles = [
   "Java Backend Developer",
